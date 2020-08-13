@@ -158,7 +158,7 @@ void AlignDelay(){                // we need to start checking on half or whole 
       RCDelay = 30 - minute;
       Serial.print("RCDelay min <30: ");
       Serial.println(RCDelay);
-      // RCDelay = RCDelay*60000; //*60000 from miliseconds to minutes - SET TO PRODUCTION
+      RCDelay = RCDelay*60000;  //*60000 from miliseconds to minutes - SET TO PRODUCTION
       delay(RCDelay);
       minute=30;
       }
@@ -167,7 +167,7 @@ void AlignDelay(){                // we need to start checking on half or whole 
     RCDelay = 60 - minute;
     Serial.print("RCDelay min >30: ");
     Serial.println(RCDelay);
-    // RCDelay = RCDelay*60000; //*60000 from miliseconds to minutes - SET TO PRODUCTION
+    RCDelay = RCDelay*60000;    //*60000 from miliseconds to minutes - SET TO PRODUCTION
     delay(RCDelay);
     hour++;
     if (hour == 24) hour = 0;
@@ -203,7 +203,7 @@ void SendSMS(){
 
   GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
   updateSerial();
-  GSMSerial.println("AT+CMGS=\"+421915996089\"");         //change with phone number to sms
+  GSMSerial.println("AT+CMGS=\"+421987123456\"");         //change with phone number to sms in international form - SET TO PRODUCTION
   updateSerial();
   // GSMSerial.print("Test message"); //text content
   GSMSerial.print(SMSmessage); 
@@ -211,12 +211,12 @@ void SendSMS(){
   GSMSerial.write(26);           //close and send code
 
   delay(10000);
-  PowerOffGSM();
+  PowerOffGSM();                 // After successful send, we will power off the GSM module
   }
 
 // #################################
 
-void PowerOffGSM() {         // power Off A6 GSM module
+void PowerOffGSM() {         // power Off A6 GSM module by AT command
   GSMSerial.println("AT+CPOF");
   updateSerial();
   }
@@ -241,7 +241,7 @@ void(* resetFunc) (void) = 0;    //declare reset function @ address 0 => arduino
 
 //#### FAKE #################
 
-void FakeCheckRain(){
+void FakeCheckRain(){           // we generate "random" measure
   int isRain;
   isRain = random(10);
   if (isRain>=5) SMSmessage += "Y";
@@ -269,20 +269,20 @@ void loop() {
   SMSmessage += hour;     // adding hour timestamp to SMS message
 
   if (minute==0){
-    FakeCheckRain();
-    // CheckRain();   - SET TO PRODUCTION
+    // FakeCheckRain();                   // - REMOVE FROM PRODUCTION
+    CheckRain();                                // - SET TO PRODUCTION
     // Serial.println("Min=0, wait 30 min to next check.");
-    // delay (1800000);       // 30 minute wait - SET TO PRODUCTION
+    delay (1800000);       // 30 minute wait - SET TO PRODUCTION
     minute=30;
     }
 
   // Serial.println(SMSmessage);    //test print
   
   if (minute==30){
-    FakeCheckRain();
-    // CheckRain();   - SET TO PRODUCTION
+    // FakeCheckRain();                   // - REMOVE FROM PRODUCTION
+    CheckRain();                                // - SET TO PRODUCTION
     // Serial.println("Min=30, wait 30 min to next check.");
-    // delay (1800000);       // 30 minute wait - SET TO PRODUCTION
+    delay (1800000);       // 30 minute wait - SET TO PRODUCTION
     minute=0;
     }
 
@@ -291,12 +291,12 @@ void loop() {
   hour++;
   if (hour == 24) hour = 0;  // midnight
 
-  if (hour == 12 && minute == 0) {          // time to send SMS
+  if (hour == 12 && minute == 0) {          // time to send SMS, amend if required - SET TO PRODUCTION
     SMSmessage += " --RainReportEND";
     Serial.println("Sending SMS");
     Serial.println(SMSmessage);
-    // SendSMS();          // - SET TO PRODUCTION
-    FakeSendSMS();
+    SendSMS();                                 // - SET TO PRODUCTION
+    // FakeSendSMS();                                // - REMOVE FROM PRODUCTION
 
     Serial.println("############");
     delay(10000);
